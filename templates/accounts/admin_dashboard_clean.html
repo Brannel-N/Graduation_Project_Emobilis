@@ -1,0 +1,353 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block title %}Admin Dashboard - DMS{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-tachometer-alt me-2"></i>Dashboard Overview
+        </h1>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="row g-4 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Reports Today</h6>
+                            <h3 class="mb-0" id="reports-today-counter">{{ total_reports_today }}</h3>
+                            <small class="text-muted" id="last-updated">
+                                <i class="far fa-clock me-1"></i> <span>Just now</span>
+                            </small>
+                        </div>
+                        <div class="bg-primary bg-opacity-10 p-3 rounded-circle" style="cursor: pointer;" onclick="updateReportsToday()" title="Refresh count">
+                            <i class="fas fa-sync-alt text-primary" id="refresh-icon"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Total Users</h6>
+                            <h3 class="mb-0">{{ total_users }}</h3>
+                        </div>
+                        <div class="bg-success bg-opacity-10 p-3 rounded-circle">
+                            <i class="fas fa-users text-success"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Total Students</h6>
+                            <h3 class="mb-0">{{ total_students }}</h3>
+                        </div>
+                        <div class="bg-info bg-opacity-10 p-3 rounded-circle">
+                            <i class="fas fa-graduation-cap text-info"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Total Teachers</h6>
+                            <h3 class="mb-0">{{ total_teachers }}</h3>
+                        </div>
+                        <div class="bg-warning bg-opacity-10 p-3 rounded-circle">
+                            <i class="fas fa-chalkboard-teacher text-warning"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-0">
+                    <h6 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Reports by Category</h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container" style="position: relative; height:300px;">
+                        <canvas id="catChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-0">
+                    <h6 class="mb-0"><i class="fas fa-user-graduate me-2"></i>Top Students by Reports</h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container" style="position: relative; height:300px;">
+                        <canvas id="studentChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Recent Activity -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white border-0">
+            <h6 class="mb-0"><i class="fas fa-history me-2"></i>Recent Activity</h6>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Date</th>
+                            <th>Action</th>
+                            <th>User</th>
+                            <th>Details</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="4" class="text-center py-4">
+                                <div class="text-muted">
+                                    <i class="fas fa-inbox fa-2x mb-2"></i>
+                                    <p class="mb-0">No recent activity</p>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Function to update the reports counter with loading state and timestamp
+    function updateReportsToday() {
+        const counterElement = document.getElementById('reports-today-counter');
+        const lastUpdatedElement = document.getElementById('last-updated');
+        const refreshIcon = document.getElementById('refresh-icon');
+        
+        // Add loading state
+        refreshIcon.classList.remove('fa-sync-alt');
+        refreshIcon.classList.add('fa-spinner', 'fa-spin');
+        
+        fetch('/accounts/api/reports/today/count/')
+            .then(response => response.json())
+            .then(data => {
+                if (counterElement) {
+                    counterElement.textContent = data.count;
+                    
+                    // Update timestamp
+                    const now = new Date();
+                    const timeString = now.toLocaleTimeString('en-US', { 
+                        hour: '2-digit', 
+                        minute: '2-digit',
+                        hour12: true 
+                    });
+                    lastUpdatedElement.innerHTML = `<i class="far fa-clock me-1"></i> Updated at ${timeString}`;
+                    
+                    // Add animation when counter updates
+                    counterElement.style.transform = 'scale(1.1)';
+                    setTimeout(() => {
+                        counterElement.style.transform = 'scale(1)';
+                    }, 300);
+                }
+            })
+            .catch(error => {
+                console.error('Error updating reports count:', error);
+                refreshIcon.classList.remove('fa-spin');
+            });
+    }
+
+    // Update immediately on page load
+    updateReportsToday();
+
+    // Update every 60 seconds
+    setInterval(updateReportsToday, 60000);
+
+    // Initialize charts when the page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        // Color palettes
+        const chartColors = {
+            primary: '#667eea',
+            secondary: '#764ba2',
+            success: '#4ecdc4',
+            danger: '#ff6b6b',
+            warning: '#ffd93d',
+            info: '#45b7d1'
+        };
+        
+        // Category Chart (Doughnut)
+        const catCtx = document.getElementById('catChart');
+        if (catCtx) {
+            const catChart = new Chart(catCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: {{ categories|safe }},
+                    datasets: [{
+                        data: {{ cat_values|safe }},
+                        backgroundColor: [
+                            chartColors.primary,
+                            chartColors.secondary,
+                            chartColors.success,
+                            chartColors.danger,
+                            chartColors.warning,
+                            chartColors.info
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.raw || 0;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = Math.round((value / total) * 100);
+                                    return `${label}: ${value} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Top Students Chart (Bar)
+        const studentCtx = document.getElementById('studentChart');
+        if (studentCtx) {
+            const studentChart = new Chart(studentCtx, {
+                type: 'bar',
+                data: {
+                    labels: {{ student_labels|safe }},
+                    datasets: [{
+                        label: 'Number of Reports',
+                        data: {{ student_values|safe }},
+                        backgroundColor: chartColors.primary,
+                        borderColor: chartColors.primary,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+
+    // Category Pie Chart
+    if (document.getElementById('catChart')) {
+        new Chart(document.getElementById('catChart'), {
+            type: 'doughnut',
+            data: {
+                labels: categories.length > 0 ? categories : ['No Data'],
+                datasets: [{
+                    data: catValues.length > 0 ? catValues : [1],
+                    backgroundColor: [
+                        chartColors.primary,
+                        chartColors.secondary,
+                        chartColors.danger,
+                        chartColors.success,
+                        chartColors.info,
+                        chartColors.warning
+                    ],
+                    borderColor: 'white',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 15,
+                            font: { size: 12, weight: '600' },
+                            usePointStyle: true
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Student Bar Chart
+    if (document.getElementById('studentChart')) {
+        new Chart(document.getElementById('studentChart'), {
+            type: 'bar',
+            data: {
+                labels: studentLabels.length > 0 ? studentLabels : ['No Data'],
+                datasets: [{
+                    label: 'Reports Count',
+                    data: studentValues.length > 0 ? studentValues : [0],
+                    backgroundColor: 'rgba(102, 126, 234, 0.8)',
+                    borderColor: '#667eea',
+                    borderWidth: 2,
+                    borderRadius: 8,
+                    hoverBackgroundColor: 'rgba(102, 126, 234, 1)'
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        labels: { font: { size: 12, weight: '600' } }
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        grid: { display: true, color: 'rgba(0, 0, 0, 0.05)' }
+                    },
+                    y: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+    }
+</script>
+{% endblock %}

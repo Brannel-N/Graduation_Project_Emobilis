@@ -1,0 +1,331 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Discipline Management System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --light-color: #ecf0f1;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .login-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .login-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            max-width: 900px;
+            width: 100%;
+        }
+
+        .login-row {
+            display: flex;
+            min-height: 500px;
+        }
+
+        .login-left {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            padding: 50px 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            width: 40%;
+        }
+
+        .login-right {
+            padding: 50px 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            width: 60%;
+        }
+
+        .login-logo {
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 2.5rem;
+        }
+
+        .login-left h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .login-left p {
+            font-size: 1rem;
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+
+        .login-right h3 {
+            color: var(--primary-color);
+            font-weight: 700;
+            margin-bottom: 10px;
+            font-size: 1.8rem;
+        }
+
+        .login-right .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 0.95rem;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            color: var(--primary-color);
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .form-group input:focus {
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+            outline: none;
+        }
+
+        .btn-login {
+            background: linear-gradient(135deg, var(--secondary-color) 0%, #2980b9 100%);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(52, 152, 219, 0.3);
+        }
+
+        .btn-login:active {
+            transform: translateY(0);
+        }
+
+        .error-messages {
+            background: #fee;
+            border: 1px solid #fcc;
+            color: var(--accent-color);
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+
+        .error-messages ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .error-messages li {
+            padding: 3px 0;
+        }
+
+        .info-box {
+            background: #f0f8ff;
+            border-left: 4px solid var(--secondary-color);
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 25px;
+            font-size: 0.85rem;
+            color: #555;
+        }
+
+        .info-box strong {
+            color: var(--primary-color);
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: var(--secondary-color);
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .back-link:hover {
+            color: var(--primary-color);
+        }
+
+        .back-link i {
+            margin-right: 8px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .login-row {
+                flex-direction: column;
+                min-height: auto;
+            }
+
+            .login-left,
+            .login-right {
+                width: 100%;
+                padding: 40px 25px;
+            }
+
+            .login-left {
+                padding: 40px 25px;
+                min-height: 250px;
+            }
+
+            .login-left h2 {
+                font-size: 1.5rem;
+            }
+
+            .login-right h3 {
+                font-size: 1.3rem;
+            }
+        }
+
+        /* Animation */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .login-container {
+            animation: fadeInUp 0.6s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-wrapper">
+        <div class="login-container">
+            <div class="login-row">
+                <!-- Left Side - Branding -->
+                <div class="login-left">
+                    <div class="login-logo">
+                        <i class="fas fa-graduation-cap"></i>
+                    </div>
+                    <h2>DMS</h2>
+                    <p>Discipline Management System</p>
+                    <p style="margin-top: 20px; font-size: 0.9rem; opacity: 0.8;">
+                        Streamline student discipline management with our comprehensive platform
+                    </p>
+                </div>
+
+                <!-- Right Side - Login Form -->
+                <div class="login-right">
+                    <h3>Welcome Back</h3>
+                    <p class="subtitle">Sign in to access your dashboard</p>
+
+                    <form method="post" action="{% url 'login' %}">
+                        {% csrf_token %}
+
+                        <!-- Error Messages -->
+                        {% if form.non_field_errors %}
+                            <div class="error-messages">
+                                <strong><i class="fas fa-exclamation-circle"></i> Login Failed</strong>
+                                <ul>
+                                    {% for error in form.non_field_errors %}
+                                        <li>{{ error }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% endif %}
+
+                        <!-- Username Field -->
+                        <div class="form-group">
+                            <label for="id_username">
+                                <i class="fas fa-user"></i> Username
+                            </label>
+                            <input type="text" name="username" id="id_username" class="form-control" required autofocus>
+                        </div>
+
+                        <!-- Password Field -->
+                        <div class="form-group">
+                            <label for="id_password">
+                                <i class="fas fa-lock"></i> Password
+                            </label>
+                            <input type="password" name="password" id="id_password" class="form-control" required>
+                        </div>
+                        
+                        <input type="hidden" name="next" value="{{ next }}">
+
+                        <!-- Submit Button -->
+                        <button type="submit" class="btn-login">
+                            <i class="fas fa-sign-in-alt"></i> Login
+                        </button>
+                    </form>
+
+                    <!-- Info Box -->
+                    <div class="info-box">
+                        <strong><i class="fas fa-info-circle"></i> First Time?</strong><br>
+                        Contact your school administrator to create your account. Teachers and Parents will be assigned to their respective groups.
+                    </div>
+
+                    <!-- Back Link -->
+                    <a href="/" class="back-link">
+                        <i class="fas fa-arrow-left"></i> Back to Home
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

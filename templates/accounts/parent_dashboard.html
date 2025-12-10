@@ -1,0 +1,351 @@
+
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Welcome Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-gradient-primary border-0 shadow-sm rounded-3 overflow-hidden">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h1 class="h3 text-white mb-1">
+                                <i class="fas fa-user-tie me-2"></i>Parent Portal
+                            </h1>
+                            <p class="text-white-50 mb-0">Welcome back, {{ request.user.get_full_name|default:request.user.username }}</p>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'profile' %}" class="btn btn-light btn-sm rounded-pill px-3">
+                                <i class="fas fa-user-cog me-1"></i> Profile
+                            </a>
+                            <a href="{% url 'logout' %}" class="btn btn-outline-light btn-sm rounded-pill px-3">
+                                <i class="fas fa-sign-out-alt me-1"></i> Logout
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Children Summary Cards -->
+        <div class="col-12">
+            <h4 class="mb-3"><i class="fas fa-child me-2 text-primary"></i>My Children</h4>
+        </div>
+        
+        {% if request.user.children.all %}
+            {% for child in request.user.children.all %}
+            <div class="col-md-6 col-xl-4">
+                <div class="card h-100 border-0 shadow-sm rounded-3 overflow-hidden">
+                    <div class="card-header bg-light py-3">
+                        <div class="d-flex align-items-center">
+                            <div class="avatar avatar-lg bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+                                <i class="fas fa-user-graduate fs-4"></i>
+                            </div>
+                            <div>
+                                <h5 class="mb-0">{{ child.name }}</h5>
+                                <span class="badge bg-primary bg-opacity-10 text-primary">{{ child.get_stream_display }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'reports:report-list' %}?student_id={{ child.id }}" class="btn btn-outline-primary rounded-pill">
+                                <i class="fas fa-file-alt me-2"></i>View All Reports
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <div class="card border-0 shadow-sm rounded-3">
+                    <div class="card-body text-center p-5">
+                        <div class="mb-4">
+                            <i class="fas fa-user-slash text-muted" style="font-size: 4rem; opacity: 0.3;"></i>
+                        </div>
+                        <h4 class="text-muted mb-3">No Children Linked</h4>
+                        <p class="text-muted mb-4">Please contact the school administration to link your child(ren)'s account</p>
+                        <a href="#" class="btn btn-primary px-4" data-bs-toggle="modal" data-bs-target="#contactAdminModal">
+                            <i class="fas fa-envelope me-2"></i>Contact Administrator
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Reports Section -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-clipboard-check text-success me-2"></i>Recent Approved Reports</h5>
+                    <a href="{% url 'reports:report-list' %}?parent_id={{ request.user.id }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                        View All <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+                <div class="card-body p-0">
+                    {% if approved_reports %}
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th class="ps-4">Date</th>
+                                        <th>Student</th>
+                                        <th>Category</th>
+                                        <th>Reported By</th>
+                                        <th class="text-end pe-4">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for report in approved_reports|slice:":5" %}
+                                    <tr>
+                                        <td class="ps-4">
+                                            <div class="d-flex align-items-center">
+                                                <div class="bg-light rounded p-2 me-3">
+                                                    <div class="text-center text-primary fw-bold">{{ report.created_at|date:"d" }}</div>
+                                                    <div class="text-muted small">{{ report.created_at|date:"M" }}</div>
+                                                </div>
+                                                <div>
+                                                    <div>{{ report.created_at|date:"l" }}</div>
+                                                    <small class="text-muted">{{ report.created_at|time }}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar-sm bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
+                                                    <i class="fas fa-user-graduate"></i>
+                                                </div>
+                                                <span class="fw-medium">{{ report.student.name }}</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="badge rounded-pill bg-{{ report.category|lower }} bg-opacity-10 text-{{ report.category|lower }} p-2">
+                                                <i class="fas fa-{{ report.get_icon }} me-1"></i>
+                                                {{ report.get_category_display }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar-sm bg-secondary bg-opacity-10 text-secondary rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
+                                                    <i class="fas fa-chalkboard-teacher"></i>
+                                                </div>
+                                                <span>{{ report.reported_by.get_full_name|default:report.reported_by.username }}</span>
+                                            </div>
+                                        </td>
+                                        <td class="text-end pe-4">
+                                            <a href="{% url 'reports:report-detail' report.pk %}" 
+                                               class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                                <i class="fas fa-eye me-1"></i> View
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <div class="mb-3">
+                                <i class="fas fa-clipboard-list text-muted" style="font-size: 3rem; opacity: 0.3;"></i>
+                            </div>
+                            <h5 class="text-muted">No approved reports found</h5>
+                            <p class="text-muted">When reports are approved by the admin, they will appear here.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Contact Admin Modal -->
+<div class="modal fade" id="contactAdminModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Contact School Administrator</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Please contact the school administration to link your child(ren)'s account to your parent profile.</p>
+                <div class="alert alert-info">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <div>
+                            <strong>School Office:</strong> 0712 345 678<br>
+                            <strong>Email:</strong> admin@schoolname.com
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="mailto:admin@schoolname.com" class="btn btn-primary">
+                    <i class="fas fa-envelope me-1"></i> Send Email
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Font Awesome for icons -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+<style>
+    :root {
+        --primary-color: #4e73df;
+        --secondary-color: #858796;
+        --success-color: #1cc88a;
+        --info-color: #36b9cc;
+        --warning-color: #f6c23e;
+        --danger-color: #e74a3b;
+        --light: #f8f9fc;
+        --dark: #5a5c69;
+    }
+
+    body {
+        background-color: #f8f9fc;
+        color: #5a5c69;
+        font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    }
+
+    .card {
+        border: none;
+        box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        margin-bottom: 1.5rem;
+        border-radius: 0.5rem;
+        overflow: hidden;
+    }
+
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 0.5rem 2rem 0 rgba(58, 59, 69, 0.2);
+    }
+
+    .card-header {
+        background-color: #f8f9fc;
+        border-bottom: 1px solid #e3e6f0;
+        padding: 1rem 1.5rem;
+    }
+
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, #4e73df 0%, #224abe 100%) !important;
+    }
+
+    .btn {
+        border-radius: 50rem;
+        padding: 0.5rem 1.25rem;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+
+    .btn-sm {
+        padding: 0.35rem 0.75rem;
+        font-size: 0.875rem;
+    }
+
+    .btn-outline-primary {
+        border-width: 1px;
+    }
+
+    .badge {
+        font-weight: 600;
+        padding: 0.4em 0.8em;
+        font-size: 0.75rem;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+    }
+
+    .table {
+        margin-bottom: 0;
+    }
+
+    .table th {
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 0.7rem;
+        letter-spacing: 0.5px;
+        padding: 1rem 1.5rem;
+        background-color: #f8f9fc;
+        color: #5a5c69;
+        border-bottom-width: 1px;
+    }
+
+    .table td {
+        padding: 1rem 1.5rem;
+        vertical-align: middle;
+        border-color: #e3e6f0;
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: rgba(0, 0, 0, 0.02);
+    }
+
+    .avatar {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 3rem;
+        height: 3rem;
+        font-size: 1.25rem;
+    }
+
+    .avatar-sm {
+        width: 2.5rem;
+        height: 2.5rem;
+        font-size: 1rem;
+    }
+
+    .avatar-lg {
+        width: 3.5rem;
+        height: 3.5rem;
+        font-size: 1.5rem;
+    }
+
+    /* Category badges */
+    .bg-lateness {
+        background-color: #f6c23e;
+        color: #fff;
+    }
+
+    .bg-cheating {
+        background-color: #e74a3b;
+        color: #fff;
+    }
+
+    .bg-other {
+        background-color: #6c757d;
+        color: #fff;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .card-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+        
+        .btn-group {
+            width: 100%;
+        }
+        
+        .btn {
+            width: 100%;
+            margin-bottom: 0.5rem;
+        }
+    }
+</style>
+
+<!-- Add Bootstrap JS and Popper.js -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}

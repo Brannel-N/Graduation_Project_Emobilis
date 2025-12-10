@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">
+                            <i class="fas fa-file-alt text-primary me-2"></i>Report Details
+                        </h4>
+                        <span class="badge {% if report.status == 'approved' %}bg-success{% elif report.status == 'rejected' %}bg-danger{% else %}bg-warning{% endif %} text-capitalize">
+                            {{ report.status }}
+                        </span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-circle bg-light text-primary me-3">
+                                    <i class="fas fa-user-graduate"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0 text-muted small">Student</h6>
+                                    <p class="mb-0 fw-bold">{{ report.student.name }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-circle bg-light text-primary me-3">
+                                    <i class="fas fa-tag"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0 text-muted small">Category</h6>
+                                    <span class="badge {% if report.get_category_display == 'Positive' %}bg-success{% else %}bg-warning{% endif %}">
+                                        {{ report.get_category_display }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-circle bg-light text-primary me-3">
+                                    <i class="fas fa-user-tie"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0 text-muted small">Reported By</h6>
+                                    <p class="mb-0">{{ report.reported_by.get_full_name|default:report.reported_by.username }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-circle bg-light text-primary me-3">
+                                    <i class="fas fa-calendar-alt"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0 text-muted small">Date Reported</h6>
+                                    <p class="mb-0">{{ report.created_at|date:"F j, Y h:i A" }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-3">Description</h6>
+                        <div class="card bg-light border-0 p-3">
+                            <p class="mb-0">{{ report.description|linebreaksbr }}</p>
+                        </div>
+                    </div>
+
+                    {% if report.notes %}
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-3">Admin Notes</h6>
+                        <div class="card bg-light border-0 p-3">
+                            <p class="mb-0 text-muted">{{ report.notes|linebreaksbr }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                        <a href="{% url 'reports:report-list' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Back to Reports
+                        </a>
+                        {% if perms.reports.can_manage_reports and report.status == 'pending' %}
+                        <div>
+                            <form method="post" action="{% url 'reports:approve-report' report.id %}" class="d-inline" onsubmit="return confirm('Are you sure you want to approve this report?');">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-check me-2"></i>Approve
+                                </button>
+                            </form>
+                            <form method="post" action="{% url 'reports:reject-report' report.id %}" class="d-inline ms-2" onsubmit="return confirm('Are you sure you want to reject this report?');">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger">
+                                    <i class="fas fa-times me-2"></i>Reject
+                                </button>
+                            </form>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .icon-circle {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+    }
+    .card {
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    .card-header {
+        border-bottom: 1px solid rgba(0,0,0,.05);
+    }
+</style>
+{% endblock %}

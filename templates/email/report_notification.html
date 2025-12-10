@@ -1,0 +1,27 @@
+
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Behavior Alert</title>
+    <style>
+      body { font-family: Arial, sans-serif; line-height:1.6; }
+      .card { border:1px solid #e1e1e1; padding:16px; border-radius:8px; max-width:600px; margin:auto; }
+      .header { background:#f7f7f7; padding:12px; border-radius:6px; }
+      .button { display:inline-block; padding:10px 14px; background:#0d6efd; color:#fff; text-decoration:none; border-radius:6px; }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <div class="header">
+        <h2>Behavior Alert from {{ school_name }}</h2>
+      </div>
+      <p>Dear {{ parent.get_full_name }},</p>
+      <p>We wish to inform you that <strong>{{ student.name }}</strong> was involved in <strong>{{ report.get_category_display }}</strong> on <strong>{{ report.created_at|date:"d M Y, H:i" }}</strong>.</p>
+      <p><strong>Details:</strong><br>{{ report.description }}</p>
+      <p>If you want to view the full record and acknowledge this report, please click the button below to log into the parent portal:</p>
+      <p><a class="button" href="{{ action_url }}">Open Parent Portal</a></p>
+      <p>Thank you,<br>{{ school_name }} Administration</p>
+    </div>
+  </body>
+</html>

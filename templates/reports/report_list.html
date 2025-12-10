@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+
+{% block title %}Discipline Reports - DMS{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="mb-4">
+        <div class="text-center">
+            <h1 class="mb-0">
+                {% if selected_student %}
+                    Reports for {{ selected_student.name }}
+                    <small class="text-muted d-block mt-1">
+                        <i class="fas fa-id-card me-1"></i> {{ selected_student.admission_number }} 
+                        <span class="mx-2">•</span>
+                        <i class="fas fa-graduation-cap me-1"></i> {{ selected_student.get_stream_display }}
+                    </small>
+                {% else %}
+                    <span class="d-flex justify-content-center align-items-center">
+                        <i class="fas fa-clipboard-list me-2"></i>Discipline Reports
+                    </span>
+                {% endif %}
+            </h1>
+            {% if parent_id %}
+                <p class="text-muted mb-0 mt-2">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Showing approved reports for all your children
+                </p>
+            {% endif %}
+        </div>
+        {# Create report button removed - only available on teacher dashboard #}
+    </div>
+
+    {% if reports %}
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Date</th>
+                            <th>Student</th>
+                            <th>Category</th>
+                            <th>Reported By</th>
+                            <th>Status</th>
+                            <th>Reviewed</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for report in reports %}
+                        <tr>
+                            <td>{{ report.created_at|date:"M d, Y" }}</td>
+                            <td>{{ report.student.name }}</td>
+                            <td>
+                                <span class="badge bg-secondary">
+                                    {{ report.get_category_display }}
+                                </span>
+                            </td>
+                            <td>
+                                {{ report.reported_by.get_full_name|default:report.reported_by.username }}
+                                <div class="text-muted small">{{ report.created_at|timesince }} ago</div>
+                            </td>
+                            <td>
+                                {% if report.status == 'approved' %}
+                                    <span class="badge bg-success">Approved</span>
+                                {% elif report.status == 'rejected' %}
+                                    <span class="badge bg-danger">Rejected</span>
+                                {% else %}
+                                    <span class="badge bg-warning text-dark">Pending</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if report.reviewed_by %}
+                                    {{ report.reviewed_by.get_full_name|default:report.reviewed_by.username }}
+                                    <div class="text-muted small">{{ report.reviewed_at|date:"M d, Y" }}</div>
+                                {% else %}
+                                    <span class="text-muted">—</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-nowrap">
+                                <!-- View Button -->
+                                <a href="{% url 'reports:report-detail' report.pk %}" class="btn btn-sm btn-outline-primary" title="View Details">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                
+                                {% if is_admin %}
+                                    <!-- Edit Button -->
+                                    <a href="{% url 'reports:edit-report' report.pk %}" class="btn btn-sm btn-outline-info" title="Edit Report">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    
+                                    <!-- Approve/Reject Buttons -->
+                                    {% if report.status == 'pending' %}
+                                        <a href="{% url 'reports:approve-report' report.pk %}" class="btn btn-sm btn-outline-success" title="Approve" onclick="return confirm('Are you sure you want to approve this report?');">
+                                            <i class="fas fa-check"></i>
+                                        </a>
+                                        <a href="{% url 'reports:reject-report' report.pk %}" class="btn btn-sm btn-outline-danger" title="Reject" onclick="return confirm('Are you sure you want to reject this report?');">
+                                            <i class="fas fa-times"></i>
+                                        </a>
+                                    {% endif %}
+                                    
+                                    <!-- Delete Button -->
+                                    <form method="post" action="{% url 'reports:delete-report' report.pk %}" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this report? This action cannot be undone.');">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete Report">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="card border-0 shadow-sm">
+        <div class="card-body text-center py-5">
+            <i class="fas fa-clipboard-list fa-4x text-muted mb-3"></i>
+            <h4 class="text-muted">No reports found</h4>
+            <p class="text-muted">There are no discipline reports to display at this time.</p>
+            {% if request.user.teacherprofile or request.user.is_superuser %}
+            <a href="{% url 'reports:create-report' %}" class="btn btn-primary mt-3">
+                <i class="fas fa-plus-circle me-2"></i>Create Your First Report
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    .badge {
+        font-weight: 500;
+        padding: 0.35em 0.65em;
+        font-size: 0.85em;
+    }
+    .badge-bg-minor {
+        background-color: #198754;
+        color: white;
+    }
+    .badge-bg-moderate {
+        background-color: #ffc107;
+        color: #000;
+    }
+    .badge-bg-major {
+        background-color: #dc3545;
+        color: white;
+    }
+    .table th {
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.5px;
+    }
+    .table > :not(:first-child) {
+        border-top: none;
+    }
+</style>
+{% endblock %}

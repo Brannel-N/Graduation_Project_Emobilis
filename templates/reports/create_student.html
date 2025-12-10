@@ -1,0 +1,190 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% if student %}Edit Student{% else %}Create Student{% endif %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="{% static 'css/report.css' %}" rel="stylesheet">
+  </head>
+  <body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-light mb-4">
+      <div class="container-fluid">
+        <div class="w-100 d-flex justify-content-between align-items-center">
+          <a class="navbar-brand" href="/">DMS</a>
+          <div class="d-flex gap-2">
+            <a class="btn btn-outline-secondary btn-sm" href="{% url 'reports:students-list' %}"><i class="fas fa-arrow-left me-1"></i>Back</a>
+            <a class="btn btn-outline-secondary btn-sm" href="/accounts/logout/">Logout</a>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Form Card -->
+    <div class="container d-flex justify-content-center">
+      <div class="row w-100">
+        <div class="col-lg-6 mx-auto">
+          <div class="card form-card p-4 mb-4">
+            <h3 class="page-title text-center mb-4">{% if student %}Edit Student{% else %}Create New Student{% endif %}</h3>
+            
+            {% if messages %}
+              {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                  {{ message }}
+                  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+              {% endfor %}
+            {% endif %}
+            
+            <form method="post" enctype="multipart/form-data" novalidate>
+              {% csrf_token %}
+              
+              {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                  {% for error in form.non_field_errors %}
+                    {{ error }}
+                  {% endfor %}
+                </div>
+              {% endif %}
+              
+              <!-- Name -->
+              <div class="mb-3">
+                <label for="{{ form.name.id_for_label }}" class="form-label">
+                  <i class="fas fa-user me-2" style="color: #667eea;"></i>Full Name
+                </label>
+                <input type="text" 
+                       name="{{ form.name.name }}" 
+                       id="{{ form.name.id_for_label }}" 
+                       class="form-control{% if form.name.errors %} is-invalid{% endif %}" 
+                       value="{{ form.name.value|default:'' }}" 
+                       required>
+                {% if form.name.errors %}
+                  <div class="invalid-feedback">
+                    {{ form.name.errors.0 }}
+                  </div>
+                {% endif %}
+              </div>
+
+              <!-- Admission Number -->
+              <div class="mb-3">
+                <label for="{{ form.admission_number.id_for_label }}" class="form-label">
+                  <i class="fas fa-id-card me-2" style="color: #667eea;"></i>Admission Number
+                </label>
+                <input type="text" 
+                       name="{{ form.admission_number.name }}" 
+                       id="{{ form.admission_number.id_for_label }}" 
+                       class="form-control{% if form.admission_number.errors %} is-invalid{% endif %}" 
+                       value="{{ form.admission_number.value|default:'' }}" 
+                       required>
+                {% if form.admission_number.errors %}
+                  <div class="invalid-feedback">
+                    {{ form.admission_number.errors.0 }}
+                  </div>
+                {% endif %}
+              </div>
+
+              <!-- Stream -->
+              <div class="mb-3">
+                <label for="{{ form.stream.id_for_label }}" class="form-label">
+                  <i class="fas fa-book me-2" style="color: #667eea;"></i>Stream/Class
+                </label>
+                <select name="{{ form.stream.name }}" 
+                        id="{{ form.stream.id_for_label }}" 
+                        class="form-select{% if form.stream.errors %} is-invalid{% endif %}" 
+                        required>
+                  <option value="">Select Stream/Class</option>
+                  {% for value, label in form.stream.field.choices %}
+                    <option value="{{ value }}" {% if form.stream.value == value %}selected{% endif %}>{{ label }}</option>
+                  {% endfor %}
+                </select>
+                {% if form.stream.errors %}
+                  <div class="invalid-feedback">
+                    {{ form.stream.errors.0 }}
+                  </div>
+                {% endif %}
+              </div>
+
+              <!-- Gender -->
+              <div class="mb-3">
+                <label for="{{ form.gender.id_for_label }}" class="form-label">
+                  <i class="fas fa-venus-mars me-2" style="color: #667eea;"></i>Gender
+                </label>
+                <select name="{{ form.gender.name }}" 
+                        id="{{ form.gender.id_for_label }}" 
+                        class="form-select{% if form.gender.errors %} is-invalid{% endif %}" 
+                        required>
+                  <option value="">Select Gender</option>
+                  {% for value, label in form.gender.field.choices %}
+                    <option value="{{ value }}" {% if form.gender.value == value %}selected{% endif %}>{{ label }}</option>
+                  {% endfor %}
+                </select>
+                {% if form.gender.errors %}
+                  <div class="invalid-feedback">
+                    {{ form.gender.errors.0 }}
+                  </div>
+                {% endif %}
+              </div>
+
+              <!-- Parent -->
+              <div class="mb-3">
+                <label for="{{ form.parent.id_for_label }}" class="form-label">
+                  <i class="fas fa-user-check me-2" style="color: #667eea;"></i>Assign Parent (Optional)
+                </label>
+                <select name="{{ form.parent.name }}" 
+                        id="{{ form.parent.id_for_label }}" 
+                        class="form-select{% if form.parent.errors %} is-invalid{% endif %}">
+                  <option value="">Select Parent (Optional)</option>
+                  {% for value, label in form.parent.field.choices %}
+                    <option value="{{ value }}" {% if form.parent.value == value %}selected{% endif %}>{{ label }}</option>
+                  {% endfor %}
+                </select>
+                {% if form.parent.errors %}
+                  <div class="invalid-feedback">
+                    {{ form.parent.errors.0 }}
+                  </div>
+                {% endif %}
+              </div>
+
+              <!-- Profile Picture -->
+              <div class="mb-4">
+                <label for="{{ form.profile_picture.id_for_label }}" class="form-label">
+                  <i class="fas fa-image me-2" style="color: #667eea;"></i>Profile Picture (Optional)
+                </label>
+                <input type="file" 
+                       name="{{ form.profile_picture.name }}" 
+                       id="{{ form.profile_picture.id_for_label }}" 
+                       class="form-control{% if form.profile_picture.errors %} is-invalid{% endif %}" 
+                       accept="image/*">
+                {% if form.profile_picture.value %}
+                  <div class="mt-2">
+                    <img src="{{ form.profile_picture.value.url }}" alt="Current profile picture" class="img-thumbnail" style="max-height: 120px;">
+                  </div>
+                {% endif %}
+                {% if form.profile_picture.errors %}
+                  <div class="invalid-feedback">
+                    {{ form.profile_picture.errors.0 }}
+                  </div>
+                {% endif %}
+              </div>
+
+              <!-- Buttons -->
+              <div class="d-flex gap-3 mt-4 pt-2">
+                <button type="submit" class="btn btn-primary flex-grow-1">
+                  <i class="fas fa-save me-2"></i>{% if student %}Update Student{% else %}Create Student{% endif %}
+                </button>
+                <a href="{% url 'reports:students-list' %}" class="btn btn-outline-secondary flex-grow-1">
+                  <i class="fas fa-times me-2"></i>Cancel
+                </a>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>
