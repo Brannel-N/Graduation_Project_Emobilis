@@ -6,6 +6,29 @@
     <title>{% block title %}DMS Admin{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Check if Chart is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof Chart === 'undefined') {
+                console.error('Chart.js failed to load!');
+                // Try loading from a different CDN as fallback
+                const script = document.createElement('script');
+                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js';
+                script.integrity = 'sha512-ElRFoEQdI5Ht6kZvyzXhYG9NqjtkmlkfYk0wr6wHxU9JEHakS7UJZNeml5ALk+8IKlU6jDgMabC3vkumRokg==';
+                script.crossOrigin = 'anonymous';
+                script.onload = function() {
+                    console.log('Chart.js loaded from fallback CDN');
+                };
+                script.onerror = function() {
+                    console.error('Failed to load Chart.js from fallback CDN');
+                };
+                document.head.appendChild(script);
+            } else {
+                console.log('Chart.js is loaded successfully');
+            }
+        });
+    </script>
     <style>
       :root{
         --sidebar-bg: linear-gradient(180deg,#2d3e50 0%, #1f2a37 100%);

@@ -185,6 +185,8 @@
 
     // Initialize charts when the page loads
     document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOM fully loaded, initializing charts...');
+        
         // Color palettes
         const chartColors = {
             primary: '#667eea',
@@ -195,15 +197,40 @@
             info: '#45b7d1'
         };
         
+        // Parse data from Django template with error handling
+        function parseJsonSafely(jsonString, defaultValue) {
+            try {
+                return JSON.parse(jsonString);
+            } catch (e) {
+                console.error('Error parsing JSON:', e);
+                console.error('Problematic JSON string:', jsonString);
+                return defaultValue;
+            }
+        }
+        
+        // Get data from Django template
+        const categories = parseJsonSafely('{{ categories|escapejs }}', ['No Data']);
+        const catValues = parseJsonSafely('{{ cat_values|escapejs }}', [1]);
+        const studentLabels = parseJsonSafely('{{ student_labels|escapejs }}', ['No Data']);
+        const studentValues = parseJsonSafely('{{ student_values|escapejs }}', [1]);
+        
+        // Log the parsed data for debugging
+        console.log('Parsed chart data:', {
+            categories: categories,
+            catValues: catValues,
+            studentLabels: studentLabels,
+            studentValues: studentValues
+        });
+        
         // Category Chart (Doughnut)
         const catCtx = document.getElementById('catChart');
         if (catCtx) {
-            const catChart = new Chart(catCtx, {
+            new Chart(catCtx, {
                 type: 'doughnut',
                 data: {
-                    labels: {{ categories|safe }},
+                    labels: categories.length > 0 ? categories : ['No Data'],
                     datasets: [{
-                        data: {{ cat_values|safe }},
+                        data: catValues.length > 0 ? catValues : [1],
                         backgroundColor: [
                             chartColors.primary,
                             chartColors.secondary,
@@ -212,7 +239,8 @@
                             chartColors.warning,
                             chartColors.info
                         ],
-                        borderWidth: 1
+                        borderWidth: 1,
+                        borderColor: 'white'
                     }]
                 },
                 options: {
@@ -220,7 +248,15 @@
                     maintainAspectRatio: false,
                     plugins: {
                         legend: {
-                            position: 'right',
+                            position: 'bottom',
+                            labels: {
+                                padding: 15,
+                                font: { 
+                                    size: 12, 
+                                    weight: '600' 
+                                },
+                                usePointStyle: true
+                            }
                         },
                         tooltip: {
                             callbacks: {
@@ -228,7 +264,7 @@
                                     const label = context.label || '';
                                     const value = context.raw || 0;
                                     const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                    const percentage = Math.round((value / total) * 100);
+                                    const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
                                     return `${label}: ${value} (${percentage}%)`;
                                 }
                             }
@@ -238,19 +274,21 @@
             });
         }
         
-        // Top Students Chart (Bar)
+        // Student Chart (Bar)
         const studentCtx = document.getElementById('studentChart');
         if (studentCtx) {
-            const studentChart = new Chart(studentCtx, {
+            new Chart(studentCtx, {
                 type: 'bar',
                 data: {
-                    labels: {{ student_labels|safe }},
+                    labels: studentLabels.length > 0 ? studentLabels : ['No Data'],
                     datasets: [{
                         label: 'Number of Reports',
-                        data: {{ student_values|safe }},
+                        data: studentValues.length > 0 ? studentValues : [0],
                         backgroundColor: chartColors.primary,
-                        borderColor: chartColors.primary,
-                        borderWidth: 1
+                        borderWidth: 1,
+                        borderColor: '#fff',
+                        borderRadius: 8,
+                        hoverBackgroundColor: 'rgba(102, 126, 234, 0.9)'
                     }]
                 },
                 options: {
@@ -262,92 +300,35 @@
                             beginAtZero: true,
                             ticks: {
                                 stepSize: 1
+                            },
+                            grid: { 
+                                display: true, 
+                                color: 'rgba(0, 0, 0, 0.05)' 
+                            }
+                        },
+                        y: {
+                            grid: { 
+                                display: false 
                             }
                         }
                     },
                     plugins: {
                         legend: {
-                            display: false
+                            display: true,
+                            position: 'bottom',
+                            labels: { 
+                                font: { 
+                                    size: 12, 
+                                    weight: '600' 
+                                },
+                                padding: 15,
+                                usePointStyle: true
+                            }
                         }
                     }
                 }
             });
         }
-
-    // Category Pie Chart
-    if (document.getElementById('catChart')) {
-        new Chart(document.getElementById('catChart'), {
-            type: 'doughnut',
-            data: {
-                labels: categories.length > 0 ? categories : ['No Data'],
-                datasets: [{
-                    data: catValues.length > 0 ? catValues : [1],
-                    backgroundColor: [
-                        chartColors.primary,
-                        chartColors.secondary,
-                        chartColors.danger,
-                        chartColors.success,
-                        chartColors.info,
-                        chartColors.warning
-                    ],
-                    borderColor: 'white',
-                    borderWidth: 2
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            padding: 15,
-                            font: { size: 12, weight: '600' },
-                            usePointStyle: true
-                        }
-                    }
-                }
-            }
-        });
-    }
-
-    // Student Bar Chart
-    if (document.getElementById('studentChart')) {
-        new Chart(document.getElementById('studentChart'), {
-            type: 'bar',
-            data: {
-                labels: studentLabels.length > 0 ? studentLabels : ['No Data'],
-                datasets: [{
-                    label: 'Reports Count',
-                    data: studentValues.length > 0 ? studentValues : [0],
-                    backgroundColor: 'rgba(102, 126, 234, 0.8)',
-                    borderColor: '#667eea',
-                    borderWidth: 2,
-                    borderRadius: 8,
-                    hoverBackgroundColor: 'rgba(102, 126, 234, 1)'
-                }]
-            },
-            options: {
-                indexAxis: 'y',
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: true,
-                        labels: { font: { size: 12, weight: '600' } }
-                    }
-                },
-                scales: {
-                    x: {
-                        beginAtZero: true,
-                        grid: { display: true, color: 'rgba(0, 0, 0, 0.05)' }
-                    },
-                    y: {
-                        grid: { display: false }
-                    }
-                }
-            }
-        });
-    }
+    });
 </script>
 {% endblock %}

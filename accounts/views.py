@@ -80,7 +80,14 @@ from django.contrib.auth.views import LoginView as DjangoLoginView
 class CustomLoginView(DjangoLoginView):
     template_name = 'accounts/login.html'
     form_class = LoginForm
-    redirect_authenticated_user = True
+    redirect_authenticated_user = False  # Changed to prevent automatic redirection
+    
+    def dispatch(self, request, *args, **kwargs):
+        # Force logout any existing user before showing login page
+        if request.user.is_authenticated:
+            from django.contrib.auth import logout
+            logout(request)
+        return super().dispatch(request, *args, **kwargs)
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -309,6 +316,27 @@ def admin_dashboard(request):
             created_at__date__lt=next_day
         ).count()
         daily_reports.append(count)
+    
+    # Debug: Print the data being passed to the template
+    print("\n=== DEBUG: Chart Data ===")
+    print(f"Categories: {categories} (type: {type(categories)})")
+    print(f"Category values: {cat_values} (type: {type(cat_values)})")
+    print(f"Student labels: {student_labels} (type: {type(student_labels)})")
+    print(f"Student values: {student_values} (type: {type(student_values)})")
+    print("======================\n")
+    
+    # Ensure we have data for charts
+    if not categories:
+        categories = ['No Data']
+        cat_values = [1]
+    
+    if not student_labels:
+        student_labels = ['No Data']
+        student_values = [1]
+    
+    if not teacher_labels:
+        teacher_labels = ['No Data']
+        teacher_values = [1]
 
     context = {
         'total_reports_today': total_reports_today,
@@ -320,12 +348,12 @@ def admin_dashboard(request):
         'daily_reports': daily_reports,
         'date_range': [date.strftime('%a') for date in date_range],  # Short day names for x-axis
         'recent_reports': recent_reports,
-        'categories': categories,
-        'cat_values': cat_values,
-        'student_labels': student_labels,
-        'student_values': student_values,
-        'teacher_labels': teacher_labels,
-        'teacher_values': teacher_values,
+        'categories': json.dumps(categories),
+        'cat_values': json.dumps(cat_values),
+        'student_labels': json.dumps(student_labels),
+        'student_values': json.dumps(student_values),
+        'teacher_labels': json.dumps(teacher_labels),
+        'teacher_values': json.dumps(teacher_values),
     }
     # Use the admin base template with sidebar
     return render(request, "accounts/admin_dashboard_clean.html", context)
